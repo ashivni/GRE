@@ -11,6 +11,7 @@ class gre_list:
         self.words.reset_index(drop=True, inplace=True)
         self.words['learned'] = 0
         self.learned_words = pd.read_csv('./data/' + self.rip_name)
+        self.invert = False
         self.n_serve = 0
         self.calc_prob()
 
@@ -25,19 +26,38 @@ class gre_list:
         rand_num = numpy.random.rand()
         word_ind = numpy.where(self.words.cum_prob > rand_num)[0].min()
 
-        print "Word: ", self.words.word[word_ind]
-        response = raw_input("[S] Show meaning, [C] Mark Correct, [W] Mark Incorrect, [R] Mark Remembered, [E] Exit: ")
-        while response not in ['S', 'C', 'W', 'R', 'E']:
-            print 'Response should be in [S, C, W, R, E]. You entered ' + response + '. Please try again.'
+        if not self.invert:
+            print "Word: ", self.words.word[word_ind]
             response = raw_input(
-                "[S] Show meaning, [C] Mark Correct, [W] Mark Incorrect, [R] Mark Remembered, [E] Exit: ")
+                "[S] Show meaning, [C] Mark Correct, [W] Mark Incorrect, [R] Mark Remembered, [I] Invert, [E] Exit: ")
+            while response not in ['S', 'C', 'W', 'R', 'E', 'I']:
+                print 'Response should be in [S, C, W, R, E, I]. You entered ' + response + '. Please try again.'
+                response = raw_input(
+                    "[S] Show meaning, [C] Mark Correct, [W] Mark Incorrect, [R] Mark Remembered, [I] Invert, "
+                    "[E] Exit: ")
 
-        if response == 'S':
-            print "Meaning: ", self.words.meaning[word_ind]
-            response = raw_input("[C] Mark Correct, [W] Mark Incorrect, [R] Mark Remembered, [E] Exit: ")
-            while response not in ['C', 'W', 'R', 'E']:
-                print 'Response should be in [C, W, R, E]. You entered ' + response + '. Please try again.'
+            if response == 'S':
+                print "Meaning: ", self.words.meaning[word_ind]
                 response = raw_input("[C] Mark Correct, [W] Mark Incorrect, [R] Mark Remembered, [E] Exit: ")
+                while response not in ['C', 'W', 'R', 'E']:
+                    print 'Response should be in [C, W, R, E]. You entered ' + response + '. Please try again.'
+                    response = raw_input("[C] Mark Correct, [W] Mark Incorrect, [R] Mark Remembered, [E] Exit: ")
+
+        else:
+            print "Meaning: ", self.words.meaning[word_ind]
+            response = raw_input(
+                "[S] Show word, [C] Mark Correct, [W] Mark Incorrect, [R] Mark Remembered, [I] Invert, [E] Exit: ")
+            while response not in ['S', 'C', 'W', 'R', 'E', 'I']:
+                print 'Response should be in [S, C, W, R, E, I]. You entered ' + response + '. Please try again.'
+                response = raw_input(
+                    "[S] Show word, [C] Mark Correct, [W] Mark Incorrect, [R] Mark Remembered, [I] Invert, [E] Exit: ")
+
+            if response == 'S':
+                print "Word: ", self.words.word[word_ind]
+                response = raw_input("[C] Mark Correct, [W] Mark Incorrect, [R] Mark Remembered, [E] Exit: ")
+                while response not in ['C', 'W', 'R', 'E']:
+                    print 'Response should be in [C, W, R, E]. You entered ' + response + '. Please try again.'
+                    response = raw_input("[C] Mark Correct, [W] Mark Incorrect, [R] Mark Remembered, [E] Exit: ")
 
         if response == 'C':
             self.words.loc[word_ind, 'correct'] += 1.0
@@ -50,6 +70,8 @@ class gre_list:
             self.words = self.words[self.words.word != self.words.word[word_ind]]
             self.words.reset_index(drop=True, inplace=True)
 
+        if response == 'I':
+            self.invert = not self.invert
         self.calc_prob()
 
         if response == 'E' or self.n_serve % 10 == 0:
